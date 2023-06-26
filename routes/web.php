@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,16 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'verified']], fu
             Route::post('/', 'store')->name('store');
             Route::put('/{category}', 'update')->name('update');
             Route::delete('/{category}', 'destroy')->name('delete');
+        });
+
+    Route::controller(IngredientController::class)
+        ->prefix('/ingredient')
+        ->name('ingredient.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{ingredient}', 'update')->name('update');
+            Route::delete('/{ingredient}', 'destroy')->name('delete');
         });
 });
 
