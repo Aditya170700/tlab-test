@@ -3,6 +3,7 @@
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecipeController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -50,6 +51,18 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'verified']], fu
             Route::post('/', 'store')->name('store');
             Route::put('/{ingredient}', 'update')->name('update');
             Route::delete('/{ingredient}', 'destroy')->name('delete');
+        });
+
+    Route::controller(RecipeController::class)
+        ->prefix('/recipe')
+        ->name('recipe.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{recipe}/edit', 'edit')->name('edit');
+            Route::put('/{recipe}', 'update')->name('update');
+            Route::delete('/{recipe}', 'destroy')->name('delete');
         });
 });
 
