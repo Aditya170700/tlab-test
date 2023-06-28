@@ -2,14 +2,21 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
 import Pagination from "@/Components/Pagination.vue";
+import InputLabel from "@/Components/InputLabel.vue";
+import TextInput from "@/Components/TextInput.vue";
 import { reactive } from "vue";
 
 defineProps({
     results: Object,
+    categories: Array,
+    ingredients: Array,
 });
+
+let params = route().params;
 
 let property = reactive({
     isModalDestroy: false,
+    isModalFilter: false,
 });
 
 const destroyForm = useForm({
@@ -27,6 +34,30 @@ const destroy = () => {
             onToggleDestroy();
         },
     });
+};
+
+const filterForm = useForm({
+    name: params.name ?? "",
+    categories: params.categories ?? [],
+    ingredients: params.ingredients ?? [],
+});
+
+function onToggleFilter() {
+    property.isModalFilter = !property.isModalFilter;
+}
+
+const filter = () => {
+    filterForm.get(route("recipe.index"), {
+        onSuccess: () => {
+            onToggleFilter();
+        },
+    });
+};
+
+const resetFilterForm = () => {
+    filterForm.name = "";
+    filterForm.categories = [];
+    filterForm.ingredients = [];
 };
 </script>
 
@@ -93,6 +124,119 @@ const destroy = () => {
             </div>
         </transition>
 
+        <!-- FILTER -->
+        <transition name="fade">
+            <div
+                v-if="property.isModalFilter"
+                class="fixed flex justify-center align-middle z-10 inset-0 overflow-y-auto p-3"
+            >
+                <div
+                    @click="onToggleFilter"
+                    class="fixed bg-black opacity-70 inset-0 z-1"
+                ></div>
+                <div
+                    class="w-full max-w-lg p-3 relative mx-auto my-auto rounded-xl shadow-lg bg-white"
+                >
+                    <form @submit.prevent="filter">
+                        <div class="text-left p-3 leading-6">
+                            <div class="flex justify-between">
+                                <h2
+                                    class="font-semibold text-xl text-gray-800 leading-tight mb-5"
+                                >
+                                    Filter
+                                </h2>
+                                <div
+                                    class="text-red-800 hover:text-red-700 font-bold"
+                                    @click="onToggleFilter"
+                                >
+                                    Close
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <InputLabel for="name" value="Name" />
+
+                                <TextInput
+                                    id="name"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="filterForm.name"
+                                />
+                            </div>
+                            <div
+                                class="grid lg:grid-cols-2 lg:gap-3 sm:grid-cols-1"
+                            >
+                                <div class="mb-3">
+                                    <InputLabel class="mb-2" value="Category" />
+                                    <div
+                                        class="flex items-center mb-2"
+                                        v-for="(cat, i) in categories"
+                                        :key="i"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            class="rounded text-gray-800 mr-2"
+                                            v-model="filterForm.categories"
+                                            :value="cat.id"
+                                            :id="`cat-${cat.id}`"
+                                        />
+                                        <label
+                                            :for="`cat-${cat.id}`"
+                                            class="text-sm"
+                                        >
+                                            {{ cat.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <InputLabel
+                                        class="mb-2"
+                                        value="Ingredient"
+                                    />
+                                    <div
+                                        class="flex items-center mb-2"
+                                        v-for="(ing, i) in ingredients"
+                                        :key="i"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            class="rounded text-gray-800 mr-2"
+                                            v-model="filterForm.ingredients"
+                                            :value="ing.id"
+                                            :id="`ing-${ing.id}`"
+                                        />
+                                        <label
+                                            :for="`ing-${ing.id}`"
+                                            class="text-sm"
+                                        >
+                                            {{ ing.name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 space-x-4 md:block">
+                            <button
+                                :class="`mb-2 md:mb-0 bg-gray-800 hover:bg-gray-700 border px-5 py-2 text-sm shadow-sm font-medium tracking-wider text-white rounded-md hover:shadow-lg  ${
+                                    filterForm.processing ? 'opacity-25' : ''
+                                }`"
+                                :disabled="filterForm.processing"
+                                type="submit"
+                            >
+                                Filter
+                            </button>
+                            <button
+                                type="button"
+                                class="mb-2 md:mb-0 bg-white px-5 py-2 text-sm shadow-sm font-medium tracking-wider border text-gray-600 rounded-md hover:shadow-lg hover:bg-gray-100"
+                                @click="resetFilterForm"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </transition>
+
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -103,12 +247,21 @@ const destroy = () => {
                             >
                                 Recipe
                             </h2>
-                            <Link
-                                :href="route('recipe.create')"
-                                class="px-6 py-1 rounded-md bg-gray-800 hover:bg-gray-700 text-white"
-                            >
-                                Add
-                            </Link>
+                            <div>
+                                <a
+                                    class="px-6 py-1 rounded-md bg-white hover:bg-gray-800 text-gray-800 hover:text-white mr-1 border"
+                                    href="#"
+                                    @click="onToggleFilter"
+                                >
+                                    Filter
+                                </a>
+                                <Link
+                                    :href="route('recipe.create')"
+                                    class="px-6 py-1 rounded-md bg-gray-800 hover:bg-gray-700 text-white"
+                                >
+                                    Add
+                                </Link>
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
@@ -173,14 +326,15 @@ const destroy = () => {
                                                 >
                                                     Edit
                                                 </Link>
-                                                <button
+                                                <a
+                                                    href="#"
                                                     class="px-6 py-1 rounded-md bg-red-600 hover:bg-red-500 text-white"
                                                     @click="
                                                         onToggleDestroy(result)
                                                     "
                                                 >
                                                     Delete
-                                                </button>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

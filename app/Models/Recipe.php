@@ -33,6 +33,20 @@ class Recipe extends Model
 
     public function scopeSearch($query, $request)
     {
-        return $query;
+        return $query
+            ->when($request->name, function ($q) use ($request) {
+                $name = strtolower($request->name);
+                $q->whereRaw("LOWER(name) LIKE '%{$name}%'");
+            })
+            ->when($request->categories, function ($q) use ($request) {
+                $q->whereHas('category', function ($q) use ($request) {
+                    $q->whereIn('id', $request->categories);
+                });
+            })
+            ->when($request->ingredients, function ($q) use ($request) {
+                $q->whereHas('ingredients', function ($q) use ($request) {
+                    $q->whereIn('id', $request->ingredients);
+                });
+            });
     }
 }

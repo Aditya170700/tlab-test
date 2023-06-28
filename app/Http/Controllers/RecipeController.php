@@ -13,6 +13,8 @@ class RecipeController extends Controller
 {
     public function index(Request $request)
     {
+        $categories = Category::all();
+        $ingredients = Ingredient::all();
         $results = Recipe::search($request)
             ->withIngredients()
             ->withCategory()
@@ -23,6 +25,8 @@ class RecipeController extends Controller
         return Inertia::render('Recipe/Index', [
             'status' => session('status'),
             'results' => $results,
+            'categories' => $categories,
+            'ingredients' => $ingredients,
         ]);
     }
 
